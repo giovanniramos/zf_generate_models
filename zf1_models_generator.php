@@ -1,13 +1,10 @@
 <?php
 /**
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the BSD License.
+ * ZF1 - MODELS GENERATOR (https://github.com/giovanniramos/zf_generate_models)
  * 
- * https://github.com/giovanniramos/zf_generate_models
- *
- * Copyright(c) 2013 by Giovanni Ramos. All rights reserved.
+ * Copyright (c) 2013 Giovanni Ramos (https://github.com/giovanniramos)
  * 
- * LICENSE New BSD License
+ * Licensed under the MIT License
  *
  */
 ?>
