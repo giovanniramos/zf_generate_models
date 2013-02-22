@@ -12,17 +12,17 @@ This script aims to automate the creation of the database models.
 
 **Skeletons**
 
-`<project name>/`
-
-    `application/`
-
-    `library/`
-
-    `public/`
-
-    `scripts/`
-
-        `zf_generate_models/`
+    <project name>/
+    |    |
+    |    application/  
+    |    |  
+    |    library/  
+    |    |  
+    |    public/  
+    |    |  
+    |    scripts/  
+    |    |    | 
+    +    +    + zf_generate_models/  
 
 
 ## License ##
