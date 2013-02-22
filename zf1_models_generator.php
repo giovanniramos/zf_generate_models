@@ -1,12 +1,13 @@
 <?php
-/**
+/************************************************************************************
+ * 
  * ZF1 - MODELS GENERATOR (https://github.com/giovanniramos/zf_generate_models)
  * 
  * Copyright (c) 2013 Giovanni Ramos (https://github.com/giovanniramos)
  * 
  * Licensed under the MIT License
- *
- */
+ * 
+ ***********************************************************************************/
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="en">
@@ -16,9 +17,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link href="assets/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css" />
 <link href="assets/css/bootstrap-responsive.min.css" media="screen" rel="stylesheet" type="text/css" />
-<script type="text/javascript" src="assets/js/jquery-1.8.0.min.js"></script>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.min.js"></script>
 <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="assets/js/jquery-scroll-pane.js"></script>
 <script type="text/javascript">$().ready(function(){ $('form').submit(function() { $(this).find('.btn.active').each(function(){ $(this).closest('form').prepend($('<input type="hidden">').prop('name', this.name).val(this.value)); }); }); });</script>
+<style type="text/css">
+.btn-group { margin: 3px; }
+.notice { display: block; color: red; clear: both; }
+.scroll-pane { overflow: auto; width: 90%; float: left; }
+.scroll-content { width: auto; float: left; }
+.scroll-content-item { width: 100px; height: 100px; float: left; margin: 10px; font-size: 3em; line-height: 96px; text-align: center; }
+.scroll-bar-wrap { clear: left; padding: 0 4px 0 2px; margin: 0 -1px -1px -1px; }
+.scroll-bar-wrap .ui-slider { background: none; border:0; height: 1.55em; margin: 0 auto;  }
+.scroll-bar-wrap .ui-handle-helper-parent { position: relative; width: 100%; height: 100%; margin: 0 auto; }
+.scroll-bar-wrap .ui-slider-handle { top: .2em; height: 1em; cursor: pointer; }
+.scroll-bar-wrap .ui-slider-handle .ui-icon { position: relative; top: 50%; margin: -8px auto 0; }
+</style>
 </head>
 <body>
 <div class="navbar navbar-static-top">
@@ -93,18 +109,25 @@ if ($step == 1):
             <div class="control-group">
                 <label class="control-label">Databases available</label>
                 <div class="controls">
-                    <div class="btn-group" data-toggle="buttons-radio">
-                        <?php
-                        if ($list_databases):
-                            while ($_ = mysql_fetch_array($list_databases)):
-                                $database = $_[Database];
-                                if (in_array($_[0], array('information_schema', 'mysql', 'performance_schema', 'phpmyadmin', 'webauth', 'test')))
-                                    continue;
-                                else
-                                    echo '<button type="button" class="btn" name="database" value="' . $database . '">' . $database . '</button>';
-                            endwhile;
-                        endif;
-                        ?>
+                    <div class="scroll-pane ui-widget ui-widget-header ui-corner-all" data-toggle="buttons-checkbox">
+                        <div class="scroll-content">
+                            <div class="btn-group" data-toggle="buttons-radio">
+                                <?php
+                                if ($list_databases):
+                                    while ($_ = mysql_fetch_array($list_databases)):
+                                        $database = $_[Database];
+                                        if (in_array($_[0], array('information_schema', 'mysql', 'performance_schema', 'phpmyadmin', 'webauth', 'test')))
+                                            continue;
+                                        else
+                                            echo '<button type="button" class="btn" name="database" value="' . $database . '">' . $database . '</button>';
+                                    endwhile;
+                                endif;
+                                ?>
+                            </div>
+                        </div>
+                        <div class="scroll-bar-wrap ui-widget-content ui-corner-bottom">
+                            <div class="scroll-bar"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -128,8 +151,6 @@ $__zend['schema'] = strtolower($db_database);
 $__zend['base'] = preg_replace('~_~', '', $__zend['schema']);
 $__zend['baseUpper'] = implode(array_map('ucwords', preg_split('~_~', $__zend['schema'])));
 
-//echo 'zends: <pre>',print_r($__zend,true),'</pre>';
-echo 'posts: <pre>',print_r($_POST,true),'</pre>';
 
 //***************************************************
 // STEP 2
@@ -167,21 +188,28 @@ if ($step == 2):
             <div class="control-group">
                 <label class="control-label">Tables available</label>
                 <div class="controls">
-                    <div class="btn-group" data-toggle="buttons-checkbox">
-                        <?php
-                        if ($list_tables):
-                            while ($_ = @mysql_fetch_row($list_tables)):
-                                $table = $_[0];
-                                $table_name = implode(array_map('ucwords', preg_split('~_~', $table)));
-                                $has_file = file_exists(DIR_MODELS . $table_name . '.php') ? 'red' : 'black';
-                                
-                                echo '<button type="button" class="btn" name="tables[]" value="' . $table . '" style="color: ' . $has_file . '">' . $table . '</button>';
-                            endwhile;
-                        endif;
-                        ?>
+                    <div class="scroll-pane ui-widget ui-widget-header ui-corner-all" data-toggle="buttons-checkbox">
+                        <div class="scroll-content">
+                            <div class="btn-group">
+                            <?php
+                            if ($list_tables):
+                                while ($_ = @mysql_fetch_row($list_tables)):
+                                    $table = $_[0];
+                                    $table_name = implode(array_map('ucwords', preg_split('~_~', $table)));
+                                    $has_file = file_exists(DIR_MODELS . $table_name . '.php') ? 'red' : 'black';
+
+                                    echo '<button type="button" class="btn" name="tables[]" value="' . $table . '" style="color: ' . $has_file . '">' . $table . '</button>';
+                                endwhile;
+                            endif;
+                            ?>
+                            </div>
+                        </div>
+                        <div class="scroll-bar-wrap ui-widget-content ui-corner-bottom">
+                            <div class="scroll-bar"></div>
+                        </div>
                     </div>
-                    <br />
-                    <small style='color:red;'>Tables in red have been previously created</small>
+                    
+                    <small class="notice">Tables in red have been previously created</small>
                 </div>
             </div>
             
@@ -207,8 +235,10 @@ if (!$db_selected)
 
 // Generate model layers
 $tables = (array) $_POST['tables'];
-
 echo '<fildset><legend>Generate models</legend>';
+if (!$tables):
+    exit('<div class="alert"><h4>No results</h4> <a href="javascript:history.back();" />Click here and try again</a></div>');
+endif;
 foreach ($tables as $table)
     genModels($table);
 echo '</fildset>';
@@ -354,7 +384,7 @@ PARTE3;
     echo '</pre>';
 }
 
-echo '<br /><br /><a href="javascript:location.reload(true);" />Click here to return</a>';
+echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick="javascript:history.go(-2);" /><br /><br /><br /><br />';
 
 
 
