@@ -245,7 +245,7 @@ echo '</fildset>';
 
 function genModels($table = null)
 {
-    global $__zend, $content_model_controll, $content_model_mapper, $content_model_dbtable;
+    global $__zend;
     
     // Checks if the following directories exist
     gen_dir(DIR_APP);     # DIR: \application
@@ -316,14 +316,14 @@ function genModels($table = null)
 
     
     //***************************************************
-    //  CREATE CONTROLL
+    //  CREATE MODEL
     //***************************************************
-    $content_model_controll = <<<PARTE1
+    $content_model = <<<MODEL
 <?php
 
 // application/models/{$__zend_tableNameUpper}.php
 
-class Application_Model_{$__zend_tableNameUpper} extends System_Db_Model_Abstract
+class Application_Model_{$__zend_tableNameUpper} extends App_Db_Model_Abstract
 {
     {$listVars}{$listVOs}
     public function toArray()
@@ -333,37 +333,32 @@ class Application_Model_{$__zend_tableNameUpper} extends System_Db_Model_Abstrac
     }
 
 }
-PARTE1;
+MODEL;
 
     //***************************************************
     //  CREATE MAPPER
     //***************************************************
-    $content_model_mapper = <<<PARTE2
+    $content_mapper = <<<MAPPER
 <?php
 
 // application/models/{$__zend_tableNameUpper}Mapper.php
 
-class Application_Model_{$__zend_tableNameUpper}Mapper extends System_Db_Mapper_Abstract
+class Application_Model_{$__zend_tableNameUpper}Mapper extends App_Db_Mapper_Abstract
 {
     
 }
-PARTE2;
+MAPPER;
 
     //***************************************************
     //  CREATE DBTABLE
     //***************************************************
-    $content_model_dbtable = <<<PARTE3
+    $content_dbtable = <<<DBTABLE
 <?php
 
 // application/models/DbTable/{$__zend_tableNameUpper}.php
 
 class Application_Model_DbTable_{$__zend_tableNameUpper} extends Zend_Db_Table_Abstract
 {
-    /**
-     * Name of database
-     * @var string
-     */
-    protected \$_schema = '{$__zend['schema']}';
 
     /**
      * Table Name
@@ -372,15 +367,15 @@ class Application_Model_DbTable_{$__zend_tableNameUpper} extends Zend_Db_Table_A
     protected \$_name = '{$__zend_tableName}';
 
 }
-PARTE3;
+DBTABLE;
     
     // Displays tables, data types and models created
     echo '<pre>';
     foreach ($process as $ps) echo $ps;
     
-    gen_file(DIR_MODELS, $__zend_tableNameUpper, $content_model_controll); # \models\File.php
-    gen_file(DIR_MODELS, $__zend_tableNameUpper . 'Mapper', $content_model_mapper);   # \models\FileMapper.php
-    gen_file(DIR_DBTABLE, $__zend_tableNameUpper, $content_model_dbtable); # \models\DbTable\File.php
+    gen_file(DIR_MODELS, $__zend_tableNameUpper, $content_model); # \models\File.php
+    gen_file(DIR_MODELS, $__zend_tableNameUpper . 'Mapper', $content_mapper);   # \models\FileMapper.php
+    gen_file(DIR_DBTABLE, $__zend_tableNameUpper, $content_dbtable); # \models\DbTable\File.php
     echo '</pre>';
 }
 
