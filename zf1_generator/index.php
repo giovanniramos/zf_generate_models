@@ -1,7 +1,7 @@
 <?php
 /************************************************************************************
  * 
- * ZF1 - MODELS GENERATOR (https://github.com/giovanniramos/zf_generate_models)
+ * ZEND FRAMEWORK - MODELS GENERATOR (https://github.com/giovanniramos/zf_generate_models)
  * 
  * Copyright (c) 2013 Giovanni Ramos (https://github.com/giovanniramos)
  * 
@@ -42,8 +42,6 @@
 </div>
 <div class="container" style="margin-top: 30px;">
 <?php
-// Enable automatic backup of models
-$generate_backup = false;
 
 // Defining the paths of application
 define('ROOT', '../../');
@@ -100,14 +98,14 @@ if ($step == 1):
             ?>
             
             <div class="control-group">
-                <label class="control-label" for="inputServername">Server name</label>
+                <label class="control-label" for="inputServername"><strong>Server name</strong></label>
                 <div class="controls">
                     <input type="text" id="inputServername" placeholder="Server undefined" value="<?php echo $db_hostname; ?>" readonly="readonly" />
                 </div>
             </div>
             
             <div class="control-group">
-                <label class="control-label">Databases available</label>
+                <label class="control-label"><strong>Databases available</strong></label>
                 <div class="controls">
                     <div class="scroll-pane ui-widget ui-widget-header ui-corner-all" data-toggle="buttons-checkbox">
                         <div class="scroll-content">
@@ -179,14 +177,14 @@ if ($step == 2):
             ?>
             
             <div class="control-group">
-                <label class="control-label" for="inputDatabase">Database</label>
+                <label class="control-label" for="inputDatabase"><strong>Database</strong></label>
                 <div class="controls">
                     <input type="text" id="inputDatabase" placeholder="None" value="<?php echo $db_database; ?>" readonly="readonly" />
                 </div>
             </div>
             
             <div class="control-group">
-                <label class="control-label">Tables available</label>
+                <label class="control-label"><strong>Tables available</strong></label>
                 <div class="controls">
                     <div class="scroll-pane ui-widget ui-widget-header ui-corner-all" data-toggle="buttons-checkbox">
                         <div class="scroll-content">
@@ -200,6 +198,8 @@ if ($step == 2):
 
                                     echo '<button type="button" class="btn" name="tables[]" value="' . $table . '" style="color: ' . $has_file . '">' . $table . '</button>';
                                 endwhile;
+                            else:
+                                echo '&nbsp;';
                             endif;
                             ?>
                             </div>
@@ -210,6 +210,10 @@ if ($step == 2):
                     </div>
                     
                     <small class="notice">Tables in red have been previously created</small>
+                    
+                    <label class="checkbox inline">
+                        <input type="checkbox" id="inputBackup" name="backup" value="1" checked /> Enable automatic backup of models
+                    </label>
                 </div>
             </div>
             
@@ -227,6 +231,9 @@ endif;
 //***************************************************
 // STEP 3
 //***************************************************
+
+// Enable automatic backup of models
+$generate_backup = (boolean) $_POST['backup'];;
 
 // Selecting the database
 $db_selected = mysql_select_db($db_database, $db_link);
@@ -323,7 +330,7 @@ function genModels($table = null)
 
 // application/models/{$__zend_tableNameUpper}.php
 
-class Application_Model_{$__zend_tableNameUpper} extends App_Db_Model_Abstract
+class Application_Model_{$__zend_tableNameUpper} extends App_Model_Abstract
 {
     {$listVars}{$listVOs}
     public function toArray()
@@ -343,9 +350,14 @@ MODEL;
 
 // application/models/{$__zend_tableNameUpper}Mapper.php
 
-class Application_Model_{$__zend_tableNameUpper}Mapper extends App_Db_Mapper_Abstract
+class Application_Model_{$__zend_tableNameUpper}Mapper extends App_Model_Mapper_Abstract
 {
-    
+
+    public function __construct()
+    {
+        \$this->setModel("{$__zend_tableNameUpper}");
+    }
+
 }
 MAPPER;
 
@@ -389,8 +401,8 @@ echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick=
 
 function gen_vo($var)
 {
-    if ($var['name'] == 'id')
-        return;
+    #if ($var['name'] == 'id')
+    #    return;
 
     $name = preg_split('~_~', $var['name']);
     $nameFirst = implode(array_map('ucwords', $name));
@@ -435,8 +447,8 @@ function gen_vo($var)
 
 function gen_var($var)
 {
-    if ($var['name'] == 'id')
-        return;
+    #if ($var['name'] == 'id')
+    #    return;
 
     $name = strtolower($var['name']);
     return "protected \$_{$name};\n\t";
