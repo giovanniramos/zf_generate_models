@@ -10,19 +10,40 @@ This script aims to automate the creation of the database models.
 
 ## Installation ##
 
-**Skeletons**
+**Git clone**
+
+git clone https://github.com/giovanniramos/zf_generate_models.git
+
+**Installation structure**
 
     <project name>/
-    |    |
-    |    application/  
-    |    |  
-    |    library/  
-    |    |  
-    |    public/  
-    |    |  
-    |    scripts/  
-    |    |    | 
-    +    +    + zf_generate_models/  
+    |   |
+    |-- application/
+    |   |
+    |-- library/
+    |   |
+    |-- public/
+    |   |
+    `-- scripts/
+        `-- zf1_generator/
+
+Copy the folder `zf1_generator` to:
+
+    <project name>/scripts/
+
+Extract the files that are in `App.rar`, in directory:
+
+    <project name>/library
+
+Add to your `application.ini` the following Namespaces:
+
+    autoloaderNamespaces[] = "App"
+
+To run the script, go through the url:
+
+    <host name>/scripts/zf1_generator
+
+That's all you need to do.
 
 
 ## License ##
