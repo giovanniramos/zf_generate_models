@@ -298,11 +298,9 @@ function genModels($table = null)
     
     $listVars = null;
     $listVOs = null;
-    $listToArray = null;
     for ($j = 0; $j < $db_num_fields; $j++):
         $listVars.= gen_var($list[$j]);
         $listVOs.= gen_vo($list[$j]);
-        $listToArray.= gen_toArray($list[$j], ($j == $db_num_fields - 1));
     endfor;
 
     if (sizeof($__zend_table_pk) == 0):
@@ -333,12 +331,6 @@ function genModels($table = null)
 class Application_Model_{$__zend_tableNameUpper} extends App_Model_Abstract
 {
     {$listVars}{$listVOs}
-    public function toArray()
-    {
-        return array({$listToArray}
-        );
-    }
-
 }
 MODEL;
 
@@ -401,15 +393,12 @@ echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick=
 
 function gen_vo($var)
 {
-    #if ($var['name'] == 'id')
-    #    return;
-
     $name = preg_split('~_~', $var['name']);
     $nameFirst = implode(array_map('ucwords', $name));
     $nameLower = strtolower($var['name']);
     $type = $var['type'];
 
-    $set =
+    $setMethod =
     ($type == 'date') ?
     "
     public function set{$nameFirst}(\$value)
@@ -434,7 +423,7 @@ function gen_vo($var)
     }
     ");
 
-    $get =
+    $getMethod =
     "
     public function get{$nameFirst}()
     {
@@ -442,14 +431,11 @@ function gen_vo($var)
     }
     ";
 
-    return $set . $get;
+    return $setMethod . $getMethod;
 }
 
 function gen_var($var)
 {
-    #if ($var['name'] == 'id')
-    #    return;
-
     $name = strtolower($var['name']);
     return "protected \$_{$name};\n\t";
 }
