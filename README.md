@@ -5,33 +5,36 @@ ZF1 - MODELS GENERATOR
 
 Models Generator for the Zend Framework version 1.0.
 
-This script aims to automate the creation of the database models.
+This script aims to automate the creation and access of the database models.
+
+To facilitate access to the elements of a data model, two abstract classes have been created and are available to perform this task.
 
 
 ## Installation ##
 
 **Git clone**
 
-git clone https://github.com/giovanniramos/zf_generate_models.git
+    git clone git@github.com:giovanniramos/zf_generate_models.git
 
 **Installation structure**
 
     <project name>/
-    |   |
     |-- application/
-    |   |
     |-- library/
-    |   |
+    |   |-- App/
+    |   |   `-- Model/
+    |   |       |-- Mapper/
+    |   |       |   `-- Abstract.php
+    |   |       `-- Abstract.php
     |-- public/
-    |   |
     `-- scripts/
         `-- zf1_generator/
 
-Copy the folder `zf1_generator` to:
+Copy the folder `zf1_generator` to the directory:
 
     <project name>/scripts/
 
-Extract the files that are in `App.rar`, in directory:
+Copy the folder `App` located in `zf1_library`, and paste in:
 
     <project name>/library
 

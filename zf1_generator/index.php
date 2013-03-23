@@ -347,7 +347,7 @@ class Application_Model_{$__zend_tableNameUpper}Mapper extends App_Model_Mapper_
 
     public function __construct()
     {
-        \$this->setModel("{$__zend_tableNameUpper}");
+        parent::setModel("{$__zend_tableNameUpper}");
     }
 
 }
