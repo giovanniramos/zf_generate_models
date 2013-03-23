@@ -330,7 +330,7 @@ function genModels($table = null)
 
 class Application_Model_{$__zend_tableNameUpper} extends App_Model_Abstract
 {
-    {$listVars}{$listVOs}
+{$listVars}{$listVOs}
 }
 MODEL;
 
@@ -391,63 +391,40 @@ echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick=
 //  Useful functions
 //***************************************************
 
+function gen_var($var)
+{
+    $name = strtolower($var['name']);
+    return "    protected \$_{$name};\n";
+}
+
 function gen_vo($var)
 {
     $name = preg_split('~_~', $var['name']);
     $nameFirst = implode(array_map('ucwords', $name));
     $nameLower = strtolower($var['name']);
     $type = $var['type'];
+    $types = ($type == 'date') ? '$value;' : (($type == 'null') ? '(NULL !== $value) ? (int) $value : NULL;' : sprintf('(%s) $value;', $type));
 
-    $setMethod =
-    ($type == 'date') ?
-    "
-    public function set{$nameFirst}(\$value)
-    {
-        \$this->_{$nameLower} = \$value;
-        return \$this;
-    }
-    " :
-    (($type == 'null') ?
-    "
-    public function set{$nameFirst}(\$value)
-    {
-        \$this->_{$nameLower} = (NULL !== \$value) ? (int) \$value : NULL;
-        return \$this;
-    }
-    " :
-    "
-    public function set{$nameFirst}(\$value)
-    {
-        \$this->_{$nameLower} = ({$type}) \$value;
-        return \$this;
-    }
-    ");
+    $setMethod = <<<SETTER
 
-    $getMethod =
-    "
+    public function set{$nameFirst}(\$value)
+    {
+        \$this->_{$nameLower} = {$types}
+        return \$this;
+    }
+
+SETTER;
+
+    $getMethod = <<<GETTER
+
     public function get{$nameFirst}()
     {
         return \$this->_{$nameLower};
     }
-    ";
+
+GETTER;
 
     return $setMethod . $getMethod;
-}
-
-function gen_var($var)
-{
-    $name = strtolower($var['name']);
-    return "protected \$_{$name};\n\t";
-}
-
-function gen_toArray($var, $lastComma)
-{
-    $name = preg_split('~_~', $var['name']);
-    $nameFirst = implode(array_map('ucwords', $name));
-    $nameLower = strtolower($var['name']);
-
-    $lastComma = $lastComma ? null : ",";
-    return "\n\t\t\t'{$nameLower}' => \$this->get{$nameFirst}(){$lastComma}";
 }
 
 function gen_dir($dir = null)
