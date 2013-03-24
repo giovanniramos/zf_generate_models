@@ -1,4 +1,4 @@
-ZF1 - MODELS GENERATOR
+ZEND FRAMEWORK MODELS GENERATOR
 ======================
 
 ## About ##
