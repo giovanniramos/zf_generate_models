@@ -1,5 +1,6 @@
 <?php
-/************************************************************************************
+
+/* * **********************************************************************************
  * 
  * ZEND FRAMEWORK - MODELS GENERATOR (https://github.com/giovanniramos/zf_generate_models)
  * 
@@ -7,7 +8,8 @@
  * 
  * Licensed under the MIT License
  * 
- ***********************************************************************************/
+ * ********************************************************************************* */
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="en">
@@ -42,7 +44,6 @@
 </div>
 <div class="container" style="margin-top: 30px;">
 <?php
-
 // Defining the paths of application
 define('ROOT', '../../');
 define('DIR_APP', ROOT . 'application/');
@@ -56,17 +57,28 @@ set_include_path(implode(PATH_SEPARATOR, array(
 )));
 require_once('Zend/Config/Ini.php');
 
-// Setting up access to the database
+// Setting up access to the database in the "development" environment
 $config = new Zend_Config_Ini(DIR_APP . 'configs/application.ini', 'development');
+
+// Get resources database
+$adapter = $config->resources->db->adapter;
 $params = $config->resources->db->params->toArray();
 
-$db_name = $params['dbname'];
 $db_hostname = $params['host'];
 $db_username = $params['username'];
 $db_password = $params['password'];
 
+// Generate class
+require_once('Generator.class.php');
+
 // Connecting to the database
-$db_link = @mysql_connect($db_hostname, $db_username, $db_password);
+Generator::adapter($adapter);
+Generator::connect($db_hostname, $db_username, $db_password);
+
+// User settings by the form
+$db_database = (string) $_POST['database'];
+$db_tables = (array) $_POST['tables'];
+$db_backup = (boolean) $_POST['backup'];
 
 
 // Stores the current step
@@ -78,17 +90,16 @@ $step = isset($_POST['step']) ? $_POST['step'] : 1;
 //***************************************************
 if ($step == 1):
     // Selecting all databases
-    $list_databases = mysql_list_dbs($db_link);
+    $databases = Generator::getDatabases();
     ?>
     
     <form class="form-horizontal" method="post">
         <input type="hidden" name="step" value="2" />
-        <input type="hidden" name="adapter" value="<?php echo $db_name; ?>" />
         <fildset>
             <legend>Choose a database to continue</legend>
             
             <?php
-            if (!$list_databases): 
+            if (!$databases): 
                 ?>
                 <div class="alert">
                     <strong>Notice!</strong> No database found.
@@ -111,14 +122,10 @@ if ($step == 1):
                         <div class="scroll-content">
                             <div class="btn-group" data-toggle="buttons-radio">
                                 <?php
-                                if ($list_databases):
-                                    while ($_ = mysql_fetch_array($list_databases)):
-                                        $database = $_[Database];
-                                        if (in_array($_[0], array('information_schema', 'mysql', 'performance_schema', 'phpmyadmin', 'webauth', 'test')))
-                                            continue;
-                                        else
-                                            echo '<button type="button" class="btn" name="database" value="' . $database . '">' . $database . '</button>';
-                                    endwhile;
+                                if ($databases):
+                                    foreach ($databases as $database):
+                                        echo '<button type="button" class="btn" name="database" value="' . $database . '">' . $database . '</button>';
+                                    endforeach;
                                 endif;
                                 ?>
                             </div>
@@ -140,33 +147,22 @@ if ($step == 1):
 endif;
 
 
-$db_adapter = (string) $_POST['adapter'];
-$db_database = (string) $_POST['database'];
-
-$__zend['adapter'] = strtolower(preg_replace('~[\/]{1,}$~', '', $db_adapter));
-$__zend['adapterUpper'] = ucfirst($__zend['adapter']);
-$__zend['schema'] = strtolower($db_database);
-$__zend['base'] = preg_replace('~_~', '', $__zend['schema']);
-$__zend['baseUpper'] = implode(array_map('ucwords', preg_split('~_~', $__zend['schema'])));
-
-
 //***************************************************
 // STEP 2
 //***************************************************
 if ($step == 2):
     // Selecting all tables
-    $list_tables = mysql_query("SHOW TABLES FROM {$db_database}");
+    $tables = Generator::getTablesFromDatabase($db_database);
     ?>
 
     <form class="form-horizontal" method="post">
         <input type="hidden" name="step" value="3" />
-        <input type="hidden" name="adapter" value="<?php echo $db_adapter; ?>" />
         <input type="hidden" name="database" value="<?php echo $db_database; ?>" />
         <fildset>
             <legend>Choose the tables to continue</legend>
             
             <?php
-            if (!$list_tables): 
+            if (!$tables): 
                 ?>
                 <div class="alert">
                     <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -190,14 +186,13 @@ if ($step == 2):
                         <div class="scroll-content">
                             <div class="btn-group">
                             <?php
-                            if ($list_tables):
-                                while ($_ = @mysql_fetch_row($list_tables)):
-                                    $table = $_[0];
+                            if ($tables):
+                                foreach ($tables as $table):
                                     $table_name = implode(array_map('ucwords', preg_split('~_~', $table)));
                                     $has_file = file_exists(DIR_MODELS . $table_name . '.php') ? 'red' : 'black';
 
                                     echo '<button type="button" class="btn" name="tables[]" value="' . $table . '" style="color: ' . $has_file . '">' . $table . '</button>';
-                                endwhile;
+                                endforeach;
                             else:
                                 echo '&nbsp;';
                             endif;
@@ -233,237 +228,12 @@ endif;
 //***************************************************
 
 // Enable automatic backup of models
-$generate_backup = (boolean) $_POST['backup'];;
-
-// Selecting the database
-$db_selected = mysql_select_db($db_database, $db_link);
-if (!$db_selected)
-    echo(mysql_error());
-
-// Generate model layers
-$tables = (array) $_POST['tables'];
-echo '<fildset><legend>Generate models</legend>';
-if (!$tables):
-    exit('<div class="alert"><h4>No results</h4> <a href="javascript:history.back();" />Click here and try again</a></div>');
-endif;
-foreach ($tables as $table)
-    genModels($table);
-echo '</fildset>';
-
-function genModels($table = null)
-{
-    global $__zend;
-    
-    // Checks if the following directories exist
-    gen_dir(DIR_APP);     # DIR: \application
-    gen_dir(DIR_MODELS);  # DIR: \application\models
-    gen_dir(DIR_DBTABLE); # DIR: \application\models\DbTable
-    
-    $__zend_tableName = $table;
-    $__zend_tableNameUpper = implode(array_map('ucwords', preg_split('~_~', $__zend_tableName)));
-    
-    // Selecting the table
-    $db_result = mysql_query("SELECT * FROM " . $__zend_tableName);
-    if (!$db_result):
-        exit('<div class="alert alert-error"><h4>Query failed!</h4> <a href="javascript:location.reload(true);" />Click here and try again</a></div>');
-    endif;
-    
-    // Total records found
-    $db_num_fields = mysql_num_fields($db_result);
-    
-    $list = new ArrayIterator;
-    $process = null;
-    for ($i = 0; $i < $db_num_fields; $i++):
-        $meta = mysql_fetch_field($db_result, $i);
-        if (!$meta)
-            exit("No information available.<br />");
-        if ($i == 0)
-            $process[] = "<strong>Table Information</strong>: {$__zend_tableName}<br />";
-        
-        $process[] = "- <strong>{$meta->name}</strong>:<i>{$meta->type}</i> ";
-        if ($meta->primary_key)
-            $__zend_table_pk[] = $meta->name;
-        if ($meta->primary_key)
-            $process[] = "<strong style='color:green;'>[PK]</strong>"; # Primary key
-        if ($meta->multiple_key)
-            $process[] = "<strong style='color:blue;'>[FK]</strong>";  # Foreign key
-        if ($meta->not_null)
-            $process[] = "<strong style='color:red;'>[NN]</strong>";   # Not-null
-        
-        $list[$i]['name'] = $meta->name;
-        $list[$i]['type'] = $meta->type == 'date' || $meta->type == 'datetime' ? 'date' : ($meta->numeric ? ($meta->not_null ? 'int' : 'null') : 'string');
-
-        $process[] = ($i == $db_num_fields - 1) ? "<br /><br />" : "<br />";
-    endfor;
-    
-    $listVars = null;
-    $listVOs = null;
-    for ($j = 0; $j < $db_num_fields; $j++):
-        $listVars.= gen_var($list[$j]);
-        $listVOs.= gen_vo($list[$j]);
-    endfor;
-
-    if (sizeof($__zend_table_pk) == 0):
-        $__zend_table_pk = "null";
-    elseif (sizeof($__zend_table_pk) == 1):
-        $__zend_table_pk = "'" . implode($__zend_table_pk) . "'";
-    else:
-        $listPKs = null;
-
-        if (sizeof($__zend_table_pk))
-            foreach ($__zend_table_pk as $var)
-                $listPKs.= ", '$var'";
-
-        $listPKs = preg_replace('~, ~', '', $listPKs, 1);
-
-        $__zend_table_pk = "array({$listPKs})";
-    endif;
-
-    
-    //***************************************************
-    //  CREATE MODEL
-    //***************************************************
-    $content_model = <<<MODEL
-<?php
-
-// application/models/{$__zend_tableNameUpper}.php
-
-class Application_Model_{$__zend_tableNameUpper} extends App_Model_Abstract
-{
-{$listVars}{$listVOs}
-}
-MODEL;
-
-    //***************************************************
-    //  CREATE MAPPER
-    //***************************************************
-    $content_mapper = <<<MAPPER
-<?php
-
-// application/models/{$__zend_tableNameUpper}Mapper.php
-
-class Application_Model_{$__zend_tableNameUpper}Mapper extends App_Model_Mapper_Abstract
-{
-
-    public function __construct()
-    {
-        parent::setModel("{$__zend_tableNameUpper}");
-    }
-
-}
-MAPPER;
-
-    //***************************************************
-    //  CREATE DBTABLE
-    //***************************************************
-    $content_dbtable = <<<DBTABLE
-<?php
-
-// application/models/DbTable/{$__zend_tableNameUpper}.php
-
-class Application_Model_DbTable_{$__zend_tableNameUpper} extends Zend_Db_Table_Abstract
-{
-
-    /**
-     * Table Name
-     * @var string
-     */
-    protected \$_name = '{$__zend_tableName}';
-
-}
-DBTABLE;
-    
-    // Displays tables, data types and models created
-    echo '<pre>';
-    foreach ($process as $ps) echo $ps;
-    
-    gen_file(DIR_MODELS, $__zend_tableNameUpper, $content_model); # \models\File.php
-    gen_file(DIR_MODELS, $__zend_tableNameUpper . 'Mapper', $content_mapper);   # \models\FileMapper.php
-    gen_file(DIR_DBTABLE, $__zend_tableNameUpper, $content_dbtable); # \models\DbTable\File.php
-    echo '</pre>';
-}
+Generator::setBackup($db_backup);
+Generator::generate($db_database, $db_tables);
 
 echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick="javascript:history.go(-2);" /><br /><br /><br /><br />';
 
-
-
-//***************************************************
-//  Useful functions
-//***************************************************
-
-function gen_var($var)
-{
-    $name = strtolower($var['name']);
-    return "    protected \$_{$name};\n";
-}
-
-function gen_vo($var)
-{
-    $name = preg_split('~_~', $var['name']);
-    $nameFirst = implode(array_map('ucwords', $name));
-    $nameLower = strtolower($var['name']);
-    $type = $var['type'];
-    $types = ($type == 'date') ? '$value;' : (($type == 'null') ? '(NULL !== $value) ? (int) $value : NULL;' : sprintf('(%s) $value;', $type));
-
-    $setMethod = <<<SETTER
-
-    public function set{$nameFirst}(\$value)
-    {
-        \$this->_{$nameLower} = {$types}
-        return \$this;
-    }
-
-SETTER;
-
-    $getMethod = <<<GETTER
-
-    public function get{$nameFirst}()
-    {
-        return \$this->_{$nameLower};
-    }
-
-GETTER;
-
-    return $setMethod . $getMethod;
-}
-
-function gen_dir($dir = null)
-{
-    if (is_null($dir))
-        exit("You have not set a directory name.");
-
-    if (!file_exists($dir))
-        if (!@mkdir($dir, 0777))
-            exit("Unable to create the directory:<br />{$dir}");
-        else
-            echo "Directory created:<br />{$dir}";
-}
-
-function gen_file($path = null, $file = null, $content = null)
-{
-    global $generate_backup;
-
-    if (is_null($path) || is_null($file))
-        exit("You have not set a filename or directory.");
-
-    $file = $file . ".php";
-    if ($generate_backup && file_exists($path . $file)):
-        $new_file = $file . ".bkp-" . date("YmdHis", time());
-        rename($path . $file, $path . $new_file);
-        $backup = " => <b>{$new_file}</b> [backup]";
-    endif;
-
-    $fopen = fopen($path . $file, 'wb');
-    if (!$fopen):
-        exit("Could not open the file for writing.<br />");
-    else:
-        fwrite($fopen, $content);
-        echo ("File generated: {$path}<b>{$file}</b>{$backup}<br />");
-    endif;
-
-    fclose($fopen);
-}
 ?>
 </div>
 </body>
-<html>
+</html>
