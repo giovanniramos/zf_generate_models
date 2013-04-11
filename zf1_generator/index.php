@@ -40,7 +40,7 @@
 </head>
 <body>
 <div class="navbar navbar-static-top">
-<div class="navbar-inner"><a class="brand" href="index">ZF1 - MODELS GENERATOR</a></div>
+<div class="navbar-inner"><a class="brand" href="">ZF1 - MODELS GENERATOR</a></div>
 </div>
 <div class="container" style="margin-top: 30px;">
 <?php
@@ -74,11 +74,6 @@ require_once('Generator.class.php');
 // Connecting to the database
 Generator::adapter($adapter);
 Generator::connect($db_hostname, $db_username, $db_password);
-
-// User settings by the form
-$db_database = (string) $_POST['database'];
-$db_tables = (array) $_POST['tables'];
-$db_backup = (boolean) $_POST['backup'];
 
 
 // Stores the current step
@@ -152,12 +147,13 @@ endif;
 //***************************************************
 if ($step == 2):
     // Selecting all tables
-    $tables = Generator::getTablesFromDatabase($db_database);
+    $database = isset($_POST['database']) ? $_POST['database'] : null;
+    $tables = Generator::getTablesFromDatabase($database);
     ?>
 
     <form class="form-horizontal" method="post">
         <input type="hidden" name="step" value="3" />
-        <input type="hidden" name="database" value="<?php echo $db_database; ?>" />
+        <input type="hidden" name="database" value="<?php echo $database; ?>" />
         <fildset>
             <legend>Choose the tables to continue</legend>
             
@@ -175,7 +171,7 @@ if ($step == 2):
             <div class="control-group">
                 <label class="control-label" for="inputDatabase"><strong>Database</strong></label>
                 <div class="controls">
-                    <input type="text" id="inputDatabase" placeholder="None" value="<?php echo $db_database; ?>" readonly="readonly" />
+                    <input type="text" id="inputDatabase" placeholder="None" value="<?php echo $database; ?>" readonly="readonly" />
                 </div>
             </div>
             
@@ -228,8 +224,11 @@ endif;
 //***************************************************
 
 // Enable automatic backup of models
-Generator::setBackup($db_backup);
-Generator::generate($db_database, $db_tables);
+$backup = isset($_POST['backup']) ? (boolean) $_POST['backup'] : null;
+$database = isset($_POST['database']) ? $_POST['database'] : null;
+$tables = isset($_POST['tables']) ? (array) $_POST['tables'] : null;
+Generator::setBackup($backup);
+Generator::generate($database, $tables);
 
 echo '<br /><input type="button" value="FINISH" class="btn btn-primary" onclick="javascript:history.go(-2);" /><br /><br /><br /><br />';
 

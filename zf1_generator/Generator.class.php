@@ -26,7 +26,7 @@ class Generator
     public static function connect($hostname, $username, $password)
     {
         switch (self::$adapter) {
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 self::$link = @mysql_connect($hostname, $username, $password);
                 break;
@@ -41,11 +41,11 @@ class Generator
         self::$backup = $backup;
     }
 
-    public static function setDatabases($database)
+    public static function setDatabases($database = null)
     {
         if (!$database):
             switch (self::$adapter):
-                case 'mysql':
+                case 'MYSQL':
                 case 'PDO_MYSQL':
                     $dbs = self::list_dbs();
 
@@ -61,7 +61,7 @@ class Generator
             endswitch;
         else:
             switch (self::$adapter):
-                case 'mysql':
+                case 'MYSQL':
                 case 'PDO_MYSQL':
                     $dbs = self::query('SHOW TABLES FROM ' . $database);
 
@@ -90,7 +90,7 @@ class Generator
     public static function query($query)
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 $result = mysql_query($query, self::$link);
                 break;
@@ -102,7 +102,7 @@ class Generator
     public static function select_db($database)
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 mysql_select_db($database, self::$link) or mysql_error();
                 break;
@@ -112,9 +112,9 @@ class Generator
     public static function list_dbs()
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
-                $dbs = mysql_list_dbs(self::$link);
+                $dbs = self::query('SHOW DATABASES');
                 break;
         endswitch;
 
@@ -124,7 +124,7 @@ class Generator
     public static function num_fields($result)
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 $num_fields = mysql_num_fields($result);
                 break;
@@ -136,7 +136,7 @@ class Generator
     public static function fetch_field($result, $field_offset = 0)
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 $field = mysql_fetch_field($result, $field_offset);
                 break;
@@ -148,7 +148,7 @@ class Generator
     public static function fetch_row($result)
     {
         switch (self::$adapter):
-            case 'mysql':
+            case 'MYSQL':
             case 'PDO_MYSQL':
                 $row = mysql_fetch_row($result);
                 break;
@@ -306,13 +306,13 @@ DBTABLE;
         echo '</pre>';
     }
 
-    private function gen_var($var)
+    private static function gen_var($var)
     {
         $name = strtolower($var['name']);
         return "    protected \$_{$name};\n";
     }
 
-    private function gen_vo($var)
+    private static function gen_vo($var)
     {
         $name = preg_split('~_~', $var['name']);
         $nameFirst = implode(array_map('ucwords', $name));
@@ -342,7 +342,7 @@ GETTER;
         return $setMethod . $getMethod;
     }
 
-    private function gen_dir($dir = null)
+    private static function gen_dir($dir = null)
     {
         if (is_null($dir))
             exit("You have not set a directory name.");
@@ -354,7 +354,7 @@ GETTER;
                 echo "Directory created:<br />{$dir}";
     }
 
-    private function gen_file($path = null, $file = null, $content = null)
+    private static function gen_file($path = null, $file = null, $content = null)
     {
         if (is_null($path) || is_null($file))
             exit("You have not set a filename or directory.");
