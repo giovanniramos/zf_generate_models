@@ -3,7 +3,7 @@ ZEND FRAMEWORK MODELS GENERATOR
 
 ## About ##
 
-Models Generator for the Zend Framework version 1.0.
+Models Generator for the Zend Framework 1.
 
 This script aims to automate the creation and access of the database models.
 
@@ -14,7 +14,13 @@ To facilitate access to the elements of a data model, two abstract classes have 
 
 **Git clone**
 
+Install the Zend Framework Models Generator:
+
     git clone git@github.com:giovanniramos/zf_generate_models.git
+
+Install the Zend Framework Quick Start:
+
+    git clone git@github.com:giovanniramos/zf_quickstart.git
 
 **Installation structure**
 
