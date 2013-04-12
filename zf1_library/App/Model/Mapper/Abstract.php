@@ -90,7 +90,7 @@ abstract class App_Model_Mapper_Abstract
     {
         $data = $model->toArray();
 
-        if (0 === ($id = $model->getId())) {
+        if (0 == ($id = $model->getId())) {
             $this->insert($data);
         } else {
             $this->update($data, $id);
