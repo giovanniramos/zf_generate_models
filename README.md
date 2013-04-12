@@ -3,7 +3,7 @@ ZEND FRAMEWORK MODELS GENERATOR
 
 ## About ##
 
-Models Generator for the Zend Framework 1.
+Models Generator for the Zend Framework 1 (ZF1).
 
 This script aims to automate the creation and access of the database models.
 
@@ -14,11 +14,11 @@ To facilitate access to the elements of a data model, two abstract classes have 
 
 **Git clone**
 
-Install the Zend Framework Models Generator:
+Install the ZF1 Models Generator:
 
     git clone git@github.com:giovanniramos/zf_generate_models.git
 
-Install the Zend Framework Quick Start:
+Install the ZF1 Quick Start:
 
     git clone git@github.com:giovanniramos/zf_quickstart.git
 
@@ -48,9 +48,13 @@ Add to your `application.ini` the following Namespaces:
 
     autoloaderNamespaces[] = "App"
 
-To run the script, go through the url:
+To run and test the script, go to the url:
 
     <host name>/scripts/zf1_generator
+
+And generate the "Models" the Guestbook database, which is present in the package ZF1 Quick Start.
+
+Then run the application!
 
 That's all you need to do.
 
