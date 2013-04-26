@@ -31,6 +31,14 @@ class Generator
                 case 'PDO_MYSQL':
                     self::$dbh = new PDO('mysql:host=' . $hostname . ';dbname=' . $database, $username, $password);
                     break;
+                case 'PGSQL':
+                case 'PDO_PGSQL':
+                    self::$dbh = new PDO('pgsql:host=' . $hostname . ';dbname=' . $database, $username, $password);
+                    break;
+                case 'SQLITE':
+                case 'PDO_SQLITE':
+                    self::$dbh = new PDO('sqlite:' . $database);
+                    break;
                 default: exit('Adapter not implemented!');
             }
 
@@ -105,6 +113,14 @@ class Generator
             case 'PDO_MYSQL':
                 $dbs = self::query("SHOW DATABASES WHERE `Database` NOT IN ('information_schema', 'performance_schema', 'phpmyadmin', 'mysql', 'webauth');", false);
                 break;
+            case 'PGSQL':
+            case 'PDO_PGSQL':
+                $dbs = self::query("SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid AND datname NOT LIKE 'template%';", false);
+                break;
+            case 'SQLITE':
+            case 'PDO_SQLITE':
+                $dbs = self::query("PRAGMA database_list;", false);
+                break;
         endswitch;
 
         return $dbs;
@@ -120,6 +136,15 @@ class Generator
             case 'PDO_MYSQL':
                 $tbs = self::query("SHOW TABLES FROM " . $database . ";", false);
                 break;
+            case 'PGSQL':
+            case 'PDO_PGSQL':
+                self::reconnect($database);
+                $tbs = self::query("SELECT table_name FROM information_schema.tables WHERE table_catalog = '" . $database . "' AND table_schema NOT IN ('pg_catalog', 'information_schema') AND table_type = 'BASE TABLE';", false);
+                break;
+            case 'SQLITE':
+            case 'PDO_SQLITE':
+                $tbs = self::query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                break;
         endswitch;
 
         return $tbs;
@@ -132,6 +157,16 @@ class Generator
             case 'PDO_MYSQL':
                 $fields = self::query("SHOW COLUMNS FROM " . $database . "." . $table . ";", false);
                 $columns = array('Field', 'Type', 'Key', 'Null');
+                break;
+            case 'PGSQL':
+            case 'PDO_PGSQL':
+                $fields = self::query("SELECT DISTINCT cs.column_name, cs.data_type, cs.ordinal_position, cs.is_nullable, kc.ordinal_position as pkey FROM information_schema.columns cs left join information_schema.key_column_usage kc on cs.column_name = kc.column_name WHERE cs.table_name = '" . $table . "' ORDER BY ordinal_position;", false);
+                $columns = array('column_name', 'data_type', 'pkey', 'is_nullable');
+                break;
+            case 'SQLITE':
+            case 'PDO_SQLITE':
+                $fields = self::query("PRAGMA table_info('" . $table . "');", false);
+                $columns = array('name', 'type', 'pk', 'notnull');
                 break;
         endswitch;
 
