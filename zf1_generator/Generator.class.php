@@ -180,8 +180,8 @@ class Generator
                 $_tpzf = 'int';
             elseif (preg_match('~(date|datetime)~i', $_type))
                 $_tpzf = 'date';
-            elseif (preg_match('~(yes|0)~i', $_null))
-                $_tpzf = 'null';
+            #elseif (preg_match('~(yes|0)~i', $_null))
+            #    $_tpzf = 'null';
             else
                 $_tpzf = 'string';
 
@@ -358,8 +358,9 @@ DBTABLE;
         $nameFirst = implode(array_map('ucwords', $name));
         $nameLower = strtolower($var['_name']);
 
+        $pkey = $var['_pkey'];
         $type = $var['_tpzf'];
-        $types = $type == 'date' ? '$value;' : ($type == 'null' ? '(NULL !== $value) ? (string) $value : NULL;' : sprintf('(%s) $value;', $type));
+        $types = $type == 'date' ? '$value;' : ($pkey <> '' ? '($value > 0) ? (int) $value : NULL;' : sprintf('(%s) $value;', $type));
 
         $setMethod = <<<SETTER
 
