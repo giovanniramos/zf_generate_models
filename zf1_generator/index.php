@@ -19,9 +19,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link href="assets/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css" />
 <link href="assets/css/bootstrap-responsive.min.css" media="screen" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
-<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="assets/css/jquery-ui.css" />
+<script src="assets/js/jquery-1.8.0.min.js"></script>
+<script src="assets/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="assets/js/jquery-scroll-pane.js"></script>
 <script type="text/javascript">$().ready(function(){ $('form').submit(function() { $(this).find('.btn.active').each(function(){ $(this).closest('form').prepend($('<input type="hidden">').prop('name', this.name).val(this.value)); }); }); });</script>
@@ -50,6 +50,9 @@ define('DIR_APP', ROOT . 'application/');
 define('DIR_MODELS', DIR_APP . 'models/');
 define('DIR_DBTABLE', DIR_MODELS . 'DbTable/');
 
+// Define path to application directory
+define('APPLICATION_PATH', realpath(dirname(__FILE__) . '../../../application'));
+
 // Adding the library to the include_path
 set_include_path(implode(PATH_SEPARATOR, array(
     realpath(ROOT . 'library'),
@@ -67,13 +70,13 @@ $params = $config->resources->db->params->toArray();
 $db_hostname = $params['host'];
 $db_username = $params['username'];
 $db_password = $params['password'];
+$db_database = $params['dbname'];
 
 // Generate class
 require_once('Generator.class.php');
 
 // Connecting to the database
-Generator::adapter($adapter);
-Generator::connect($db_hostname, $db_username, $db_password);
+Generator::connect($adapter, $db_hostname, $db_username, $db_password, $db_database);
 
 
 // Stores the current step
