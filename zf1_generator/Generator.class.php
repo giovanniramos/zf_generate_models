@@ -176,12 +176,15 @@ class Generator
             $_pkey = $field[$columns[2]];
             $_null = $field[$columns[3]];
 
+            $_type = mb_strtolower($_type);
+            $_pkey = preg_match('~(pri|1)~i', $_pkey) ? 'yes' : 'no';
+            $_fkey = preg_match('~(mul)~i', $_pkey) ? 'yes' : 'no';
+            $_null = preg_match('~(yes|0)~i', $_null) ? 'yes' : 'no';
+
             if (preg_match('~^((int)(\([0-9]{1,2}\))?([\s].*)?|integer)$~i', $_type))
                 $_tpzf = 'int';
             elseif (preg_match('~(date|datetime)~i', $_type))
                 $_tpzf = 'date';
-            #elseif (preg_match('~(yes|0)~i', $_null))
-            #    $_tpzf = 'null';
             else
                 $_tpzf = 'string';
 
@@ -190,6 +193,7 @@ class Generator
                 '_type' => $_type,
                 '_tpzf' => $_tpzf,
                 '_pkey' => $_pkey,
+                '_fkey' => $_fkey,
                 '_null' => $_null
             );
         endforeach;
@@ -208,6 +212,14 @@ class Generator
 
     public static function generate($database, $tables)
     {
+        // Checks if the following directories exist
+        // DIR: \application
+        self::gen_dir(DIR_APP);
+        // DIR: \application\models
+        self::gen_dir(DIR_MODELS);
+        // DIR: \application\models\DbTable
+        self::gen_dir(DIR_DBTABLE);
+
         // Generate model layers
         echo '<fildset><legend>Generate models</legend>';
         if (!$tables)
@@ -219,62 +231,32 @@ class Generator
 
     public static function gen_models($database, $table)
     {
-        // Checks if the following directories exist
-        // DIR: \application
-        self::gen_dir(DIR_APP);
-        // DIR: \application\models
-        self::gen_dir(DIR_MODELS);
-        // DIR: \application\models\DbTable
-        self::gen_dir(DIR_DBTABLE);
-
         $fields = self::fetch_fields($database, $table);
 
         $num_fields = count($fields);
         if (!$num_fields)
             exit('<div class="alert alert-error"><h4>No information available!</h4> <a href="javascript:location.reload(true);" />Click here and try again</a></div>');
 
-        $_list = new ArrayIterator;
-        $_listVars = $_listVOs = $primary_keys = $multiple_keys = null;
+        $_listVars = $_listVOs = null;
 
         $process[] = "<strong>Table Information</strong>: {$table}<br />";
         foreach ($fields as $k => $val):
             $_pk = $_fk = $_nn = null;
-            $name = $val['_name'];
-            $type = mb_strtolower($val['_type']);
 
-            if (preg_match('~(pri|1)~i', $val['_pkey'])):
-                $primary_keys[] = $name;
+            if ($val['_pkey'] == 'yes')
                 $_pk = "<strong style='color:green;'>[PK]</strong>"; // Primary key
-            endif;
 
-            if (preg_match('~(mul)~i', $val['_pkey'])):
-                $multiple_keys[] = $name;
+            if ($val['_fkey'] == 'yes')
                 $_fk = "<strong style='color:blue;'>[FK]</strong>"; // Foreign key
-            endif;
 
-            if (preg_match('~(no|1)~i', $val['_null'])):
+            if ($val['_null'] == 'no')
                 $_nn = "<strong style='color:red;'>[NN]</strong>"; // Not-null
-            endif;
 
-            $process[] = ('- <strong>' . $name . '</strong>:<i>' . $type . '</i> ' . $_pk . $_fk . $_nn . '<br />');
+            $process[] = ('- <strong>' . $val['_name'] . '</strong>:<i>' . $val['_type'] . '</i> ' . $_pk . $_fk . $_nn . '<br />');
 
             $_listVars.= self::gen_var($val);
             $_listVOs.= self::gen_vo($val);
         endforeach;
-
-        if (sizeof($primary_keys) == 0):
-            $primary_keys = "null";
-        elseif (sizeof($primary_keys) == 1):
-            $primary_keys = "'" . implode($primary_keys) . "'";
-        else:
-            $_listPKs = null;
-            if (sizeof($primary_keys))
-                foreach ($primary_keys as $var)
-                    $_listPKs.= ", '$var'";
-            $_listPKs = preg_replace('~, ~', '', $_listPKs, 1);
-
-            $primary_keys = "array({$_listPKs})";
-        endif;
 
         $tableNameUcwords = implode(array_map('ucwords', preg_split('~_~', $table)));
 
@@ -358,9 +340,10 @@ DBTABLE;
         $nameFirst = implode(array_map('ucwords', $name));
         $nameLower = strtolower($var['_name']);
 
-        $pkey = $var['_pkey'];
         $type = $var['_tpzf'];
-        $types = $type == 'date' ? '$value;' : ($pkey <> '' ? '($value > 0) ? (int) $value : NULL;' : sprintf('(%s) $value;', $type));
+        $pkey = $var['_pkey'];
+        $null = $var['_null'];
+        $types = $type == 'date' ? '$value;' : ($pkey == 'yes' ? '($value > 0) ? (int) $value : NULL;' : ($null == 'yes' ? '($value !== NULL) ? (string) $value : NULL;' : sprintf('(%s) $value;', $type)));
 
         $setMethod = <<<SETTER
 
