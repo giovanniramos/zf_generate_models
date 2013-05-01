@@ -58,9 +58,12 @@ set_include_path(implode(PATH_SEPARATOR, array(
     realpath(ROOT . 'library'),
     get_include_path(),
 )));
-require_once('Zend/Config/Ini.php');
+@require_once('Zend/Config/Ini.php');
 
 // Setting up access to the database in the "development" environment
+// When changing environment, be sure to set the same in .htaccess file
+// The following settings are options and defined in application.ini: 
+// production, development, testing
 $config = new Zend_Config_Ini(DIR_APP . 'configs/application.ini', 'development');
 
 // Get resources database
