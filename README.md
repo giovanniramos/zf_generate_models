@@ -64,3 +64,6 @@ That's all you need to do.
 Copyright (c) 2013 [Giovanni Ramos](https://github.com/giovanniramos)
 
 Distributed under the [MIT License](http://www.opensource.org/licenses/MIT) (MIT-LICENSE.txt)
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/giovanniramos/zf_generate_models/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
